@@ -121,18 +121,18 @@ export default function PaginaInicial() {
                   return (
                     <Card
                       key={produto.id}
-                      className="flex flex-col shadow-sm overflow-hidden"
+                      className="flex flex-col shadow-sm"
                     >
-                      <div className="flex h-28 sm:h-40">
-                        <div className="w-36 sm:w-40 h-full">
+                      <div className="flex h-auto">
+                        <div className="w-36 h-auto">
                           <img
                             src={produto.imagem}
                             alt={produto.nome}
-                            className="w-full h-full object-cover rounded"
+                            className="w-full h-full object-fill rounded"
                           />
                         </div>
 
-                        <CardContent className="flex-1 px-3 py-2 flex flex-col justify-between">
+                        <CardContent className="flex flex-col justify-between flex-1 px-2 py-2">
                           <div className="flex justify-between items-start gap-2">
                             <div className="flex-1">
                               <h2 className="text-sm sm:text-base font-semibold">
@@ -150,7 +150,7 @@ export default function PaginaInicial() {
 
                           </div>
 
-                          <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-end justify-between mt-auto pt-2">
                             <div>
                               <span className="text-red-600 font-bold mr-2 text-sm sm:text-base">
                                 R$ {produto.preco.toFixed(2).replace(".", ",")}
