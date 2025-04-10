@@ -950,7 +950,7 @@ const produtos = [
     preco: 5,
     precoOriginal: 6,
     categoria: "Bebidas",
-    imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/820af392-002c-47b1-bfae-d7ef31743c7f/202501071220_i01qj6nv81.png",
+    imagem: "https://bretas.vtexassets.com/arquivos/ids/201910/65730be3dddb07d995cdb18c.jpg?v=638376353037100000",
     situacao: "Ativo",
     acompanhamentos: []
   },
