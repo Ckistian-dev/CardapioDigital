@@ -1,0 +1,143 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { MessageCircle } from "lucide-react";
+
+export default function EnviarPedido() {
+  const navigate = useNavigate();
+
+  const [nome, setNome] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [pagamento, setPagamento] = useState("");
+  const [frete, setFrete] = useState(0);
+  const [produtos, setProdutos] = useState([]);
+  const [troco, setTroco] = useState(null);
+  const [total, setTotal] = useState(0);
+
+
+  useEffect(() => {
+    const nomeLocal = localStorage.getItem("nome");
+    const enderecoLocal = localStorage.getItem("endereco");
+    const pagamentoLocal = localStorage.getItem("pagamento");
+    const freteLocal = localStorage.getItem("frete");
+    const produtosLocal = localStorage.getItem("resumoPedido");
+    const totalLocal = localStorage.getItem("totalPedido");
+    const trocoLocal = localStorage.getItem("troco");
+    if (trocoLocal && pagamentoLocal === "Dinheiro") {
+      setTroco(parseFloat(trocoLocal));
+    }
+
+
+
+    if (
+      !nomeLocal ||
+      !enderecoLocal ||
+      !pagamentoLocal ||
+      !freteLocal ||
+      !produtosLocal ||
+      !totalLocal
+    ) {
+      navigate(-1);
+      return;
+    }
+
+    setNome(nomeLocal);
+    setEndereco(enderecoLocal);
+    setPagamento(pagamentoLocal);
+    setFrete(parseFloat(freteLocal));
+    setProdutos(JSON.parse(produtosLocal));
+    setTotal(parseFloat(totalLocal) + parseFloat(freteLocal));
+  }, []);
+
+
+  const codigoPix = "chavepix@exemplo.com"; // Substitua pelo real
+
+  const textoBase =
+  `🍦 *Pedido Summer Ice* 🍦\n\n` +
+  produtos
+    .map((p) =>
+      `🍨 *${p.nome}* x${p.quantidade} - R$ ${p.precoTotal
+        .toFixed(2)
+        .replace(".", ",")}` +
+      (p.acompanhamentos?.length
+        ? `\n   ➕ *Acompanhamentos:*\n` +
+          p.acompanhamentos
+            .map(
+              (a) =>
+                `     - ${a.nome} x${a.quantidade} - R$ ${a.precoTotal
+                  .toFixed(2)
+                  .replace(".", ",")}`
+            )
+            .join("\n")
+        : "")
+    )
+    .join("\n\n") +
+  `\n\n🚚 *Frete:* R$ ${frete.toFixed(2).replace(".", ",")}` +
+  `\n💳 *Pagamento:* ${pagamento}` +
+  (pagamento === "Dinheiro" && troco
+    ? `\n💵 *Troco para:* R$ ${troco.toFixed(2).replace(".", ",")}`
+    : "") +
+  `\n💰 *Total:* R$ ${total.toFixed(2).replace(".", ",")}` +
+  `\n\n🙋 *Cliente:* ${nome}` +
+  `\n🏠 *Endereço:* ${endereco}` +
+  (pagamento === "pix" ? `\n🔢 *Chave PIX:* ${codigoPix}` : "") +
+  `\n\n🛒 _Pedido gerado via Cardápio Digital_`;
+
+
+
+  const mensagem = encodeURIComponent(textoBase);
+  const numeroWhatsApp = "554598545011";
+  const linkWhatsApp = `https://api.whatsapp.com/send/?phone=${numeroWhatsApp}&text=${mensagem}`;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div
+        className="bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://i.ibb.co/fVSP3ggQ/Chat-GPT-Image-1-de-abr-de-2025-20-02-34.png')",
+        }}
+      >
+        <header className="flex items-center gap-4 p-4">
+          <img
+            src="https://i.ibb.co/hJp6v6jn/Chat-GPT-Image-1-de-abr-de-2025-19-44-40.png"
+            alt="Logo"
+            className="w-16 h-16 rounded-full"
+          />
+          <h1
+            className="text-3xl font-bold text-white tracking-wide"
+            style={{ textShadow: "4px 4px 8px rgba(0,0,0,5)" }}
+          >
+            Summer Ice
+          </h1>
+        </header>
+      </div>
+
+      <Card className="flex items-center justify-center shadow-sm overflow-hidden">
+        <h2 className="text-xl text-center px-2 py-2">Enviar Pedido</h2>
+      </Card>
+
+      <main className="p-4 pb-32">
+        <Card className="min-h-[60vh] shadow-sm border">
+          <CardContent className="p-4 whitespace-pre-line text-sm text-gray-800">
+            {decodeURIComponent(mensagem)}
+          </CardContent>
+        </Card>
+      </main>
+
+      <footer className="fixed bottom-0 left-0 right-0 bg-white shadow-md p-4 border-t">
+        <Button
+          onClick={() => window.open(linkWhatsApp, "_blank")}
+          className="w-full flex justify-between items-center px-4 py-3 text-lg font-semibold bg-red-500 hover:bg-red-600 text-white"
+        >
+          <div className="flex items-center gap-2">
+            <MessageCircle />
+            Enviar Pedido
+          </div>
+          <span>R$ {total.toFixed(2).replace(".", ",")}</span>
+        </Button>
+      </footer>
+    </div>
+  );
+}
