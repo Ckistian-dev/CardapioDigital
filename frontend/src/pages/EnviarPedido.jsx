@@ -14,6 +14,7 @@ export default function EnviarPedido() {
   const [produtos, setProdutos] = useState([]);
   const [troco, setTroco] = useState(null);
   const [total, setTotal] = useState(0);
+  const [tipoEntrega, setTipoEntrega] = useState("");
 
 
   useEffect(() => {
@@ -24,21 +25,33 @@ export default function EnviarPedido() {
     const produtosLocal = localStorage.getItem("resumoPedido");
     const totalLocal = localStorage.getItem("totalPedido");
     const trocoLocal = localStorage.getItem("troco");
+    const tipoEntregaLocal = localStorage.getItem("tipoEntrega");
     if (trocoLocal && pagamentoLocal === "Dinheiro") {
       setTroco(parseFloat(trocoLocal));
     }
 
+    if (!produtosLocal || !totalLocal) {
+      navigate("/SorveteriaSummerIce");
+      return;
+    }
 
+    if (!nomeLocal || (tipoEntregaLocal === "entrega" && !enderecoLocal)) {
+      navigate("/SorveteriaSummerIce/SelecionarEntrega");
+      return;
+    }
 
-    if (
-      !nomeLocal ||
-      !enderecoLocal ||
-      !pagamentoLocal ||
-      !freteLocal ||
-      !produtosLocal ||
-      !totalLocal
-    ) {
-      navigate(-1);
+    if (!tipoEntregaLocal) {
+      navigate("/SorveteriaSummerIce/SelecionarEntrega");
+      return;
+    }
+
+    if (tipoEntregaLocal === "entrega" && (!freteLocal || isNaN(parseFloat(freteLocal)))) {
+      navigate("/SorveteriaSummerIce/SelecionarEntrega");
+      return;
+    }
+
+    if (!pagamentoLocal) {
+      navigate("/SorveteriaSummerIce/SelecionarPagamento");
       return;
     }
 
@@ -48,20 +61,23 @@ export default function EnviarPedido() {
     setFrete(parseFloat(freteLocal));
     setProdutos(JSON.parse(produtosLocal));
     setTotal(parseFloat(totalLocal) + parseFloat(freteLocal));
+    setTipoEntrega(tipoEntregaLocal);
+
   }, []);
 
 
-  const codigoPix = "chavepix@exemplo.com"; // Substitua pelo real
+  const codigoPix = "52764726000102";
+  const nomePix = "Summer Ice Sorvetes LTDA"; 
 
   const textoBase =
-  `🍦 *Pedido Summer Ice* 🍦\n\n` +
-  produtos
-    .map((p) =>
-      `🍨 *${p.nome}* x${p.quantidade} - R$ ${p.precoTotal
-        .toFixed(2)
-        .replace(".", ",")}` +
-      (p.acompanhamentos?.length
-        ? `\n   ➕ *Acompanhamentos:*\n` +
+    `🌞 *Pedido Summer Ice* 🧊\n\n` +
+    produtos
+      .map((p) =>
+        `📋 *${p.nome}* x${p.quantidade} - R$ ${p.precoTotal
+          .toFixed(2)
+          .replace(".", ",")}` +
+        (p.acompanhamentos?.length
+          ? `\n     *Acompanhamentos:*\n` +
           p.acompanhamentos
             .map(
               (a) =>
@@ -70,19 +86,28 @@ export default function EnviarPedido() {
                   .replace(".", ",")}`
             )
             .join("\n")
-        : "")
-    )
-    .join("\n\n") +
-  `\n\n🚚 *Frete:* R$ ${frete.toFixed(2).replace(".", ",")}` +
-  `\n💳 *Pagamento:* ${pagamento}` +
-  (pagamento === "Dinheiro" && troco
-    ? `\n💵 *Troco para:* R$ ${troco.toFixed(2).replace(".", ",")}`
-    : "") +
-  `\n💰 *Total:* R$ ${total.toFixed(2).replace(".", ",")}` +
-  `\n\n🙋 *Cliente:* ${nome}` +
-  `\n🏠 *Endereço:* ${endereco}` +
-  (pagamento === "pix" ? `\n🔢 *Chave PIX:* ${codigoPix}` : "") +
-  `\n\n🛒 _Pedido gerado via Cardápio Digital_`;
+          : "")
+      )
+      .join("\n\n") +
+      (tipoEntrega === "entrega"
+    ? `\n\n🚚 *Frete:* R$ ${frete.toFixed(2).replace(".", ",")}`
+    : "\n") +
+    `\n💰 *Total:* R$ ${total.toFixed(2).replace(".", ",")}` +
+    `\n💳 *Pagamento:* ${pagamento}` +
+    (pagamento === "Dinheiro" && troco
+      ? `\n💵 *Troco para:* R$ ${troco.toFixed(2).replace(".", ",")}`
+      : "") +
+    (pagamento === "PIX"
+      ? `\n💱 *Chave PIX:* ${codigoPix}
+      *Nome da chave PIX:* ${nomePix}
+      📎 *Faça o PIX e envie o comprovante via Whatsapp!*`
+      : "") +
+    `\n\n🙋 *Cliente:* ${nome}` +
+    (tipoEntrega === "entrega"
+      ? `\n🏠 *Endereço:* ${endereco}`
+      : `\n🏃 *Retirada na loja*`) +
+    (pagamento === "pix" ? `\n🔢 *Chave PIX:* ${codigoPix}` : "") +
+    `\n\n🛒 _Pedido gerado via Cardápio Digital_`;
 
 
 
@@ -124,7 +149,19 @@ export default function EnviarPedido() {
             {decodeURIComponent(mensagem)}
           </CardContent>
         </Card>
+
+        {pagamento === "PIX" && (
+          <div className="mt-4 flex justify-center">
+            <Button
+              onClick={() => navigator.clipboard.writeText(codigoPix)}
+              className="bg-red-500 hover:bg-red-600 text-white text-sm px-12 py-2 rounded"
+            >
+              Copiar chave PIX
+            </Button>
+          </div>
+        )}
       </main>
+
 
       <footer className="fixed bottom-0 left-0 right-0 bg-white shadow-md p-4 border-t">
         <Button

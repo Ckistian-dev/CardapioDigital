@@ -986,7 +986,70 @@ const produtos = [
     imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/820af392-002c-47b1-bfae-d7ef31743c7f/202301021308_89eup119oss.jpg",
     situacao: "Ativo",
     acompanhamentos: []
-  } 
+  },
+  {
+    id: 47,
+    nome: "Picolés de Fruta",
+    descricao: "Cremosos e refrescantes, perfeitos para qualquer momento!",
+    preco: 2.5,
+    precoOriginal: 3,
+    categoria: "Sorvetes",
+    imagem: "https://propaganut.wordpress.com/wp-content/uploads/2014/09/picole.jpg",
+    situacao: "Ativo",
+    acompanhamentos: [
+      {
+        subcategoria: "Sabores",
+        min: 1,
+        max: 1,
+        itens: [
+          { id: "9-1", nome: "Uva", imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/820af392-002c-47b1-bfae-d7ef31743c7f/202210190018_dl9waq9kjr8.jpg", preco: 0, situacao: "Ativo" },
+          { id: "9-2", nome: "Maracujá", imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/820af392-002c-47b1-bfae-d7ef31743c7f/202210190017_ynhaajll4vc.jpg", preco: 0, situacao: "Ativo" },
+          { id: "9-3", nome: "Limão", imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/820af392-002c-47b1-bfae-d7ef31743c7f/202210190018_zjysdmncu48.jpg", preco: 0, situacao: "Ativo" },
+          { id: "9-4", nome: "Morango", imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/820af392-002c-47b1-bfae-d7ef31743c7f/202210190013_w0bx6iqzczk.jpg", preco: 0, situacao: "Ativo" },
+        ]
+      }      
+    ]
+  },
+  {
+    id: 48,
+    nome: "Shawarma M",
+    descricao: "Carne temperada, pão macio e molhos especiais. Sabor único!",
+    preco: 20,
+    precoOriginal: 25,
+    categoria: "Lanches",
+    imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/4c527891-f8d0-42b7-8a91-ae1d769ca4d4/202503222231_1V1C_i.jpg",
+    situacao: "Ativo",
+    acompanhamentos: [
+      {
+        subcategoria: "Sabores",
+        min: 1,
+        max: 1,
+        itens: [
+          { id: "48-1", nome: "Frango", imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/4c527891-f8d0-42b7-8a91-ae1d769ca4d4/202503222236_7378_i.jpg", preco: 0, situacao: "Ativo" },
+        ]
+      }      
+    ]
+  },
+  {
+    id: 49,
+    nome: "Shawarma G",
+    descricao: "Carne temperada, pão macio e molhos especiais. Sabor único!",
+    preco: 25,
+    precoOriginal: 30,
+    categoria: "Lanches",
+    imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/4c527891-f8d0-42b7-8a91-ae1d769ca4d4/202503222231_1V1C_i.jpg",
+    situacao: "Ativo",
+    acompanhamentos: [
+      {
+        subcategoria: "Sabores",
+        min: 1,
+        max: 1,
+        itens: [
+          { id: "49-1", nome: "Frango", imagem: "https://static.ifood-static.com.br/image/upload/t_medium/pratos/4c527891-f8d0-42b7-8a91-ae1d769ca4d4/202503222236_7378_i.jpg", preco: 0, situacao: "Ativo" },
+        ]
+      }      
+    ]
+  },
 ];
 
 export default produtos;

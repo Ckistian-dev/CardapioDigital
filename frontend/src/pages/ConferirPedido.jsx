@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect} from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { ShoppingCart, MapPin } from "lucide-react";
@@ -10,6 +10,16 @@ import produtos from "../data/produtos";
 export default function FinalizarPedido() {
   const navigate = useNavigate();
   const { carrinho } = useCarrinho();
+
+  useEffect(() => {
+    const produtos = localStorage.getItem("resumoPedido");
+
+    if (!produtos || !total) {
+      navigate("/SorveteriaSummerIce");
+      return;
+    }
+
+  }, []);
 
   const produtosSelecionados = produtos.flatMap((produto) => {
     const qtd = carrinho[produto.id] || 0;

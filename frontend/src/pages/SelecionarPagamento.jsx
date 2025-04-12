@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { ShoppingCart } from "lucide-react";
-import { useCarrinho } from "../context/CarrinhoContext";
-import produtos from "../data/produtos";
 
 const opcoesPagamento = [
   { id: "PIX", titulo: "PIX", descricao: "Pagamento Instantâneo" },
@@ -27,21 +25,52 @@ function formatarParaReal(valor) {
 export default function SelecionarPagamento() {
   const [selecionado, setSelecionado] = useState(null);
   const navigate = useNavigate();
-  const { carrinho } = useCarrinho();
   const [troco, setTroco] = useState("");
+
+  useEffect(() => {
+    const tipoEntrega = localStorage.getItem("tipoEntrega");
+    const nome = localStorage.getItem("nome");
+    const endereco = localStorage.getItem("endereco");
+    const frete = localStorage.getItem("frete");
+    const produtos = localStorage.getItem("resumoPedido");
+    const total = localStorage.getItem("totalPedido");
+
+    if (!produtos || !total) {
+      navigate("/SorveteriaSummerIce");
+      return;
+    }
+
+    if (!nome) {
+      navigate("/SorveteriaSummerIce/SelecionarEntrega");
+      return;
+    }
+
+    if (!tipoEntrega) {
+      navigate("/SorveteriaSummerIce/SelecionarEntrega");
+      return;
+    }
+
+    if (tipoEntrega === "entrega") {
+      if (!endereco || !frete || isNaN(parseFloat(frete))) {
+        navigate("/SorveteriaSummerIce/SelecionarEntrega");
+        return;
+      }
+    }
+  }, []);
+
 
 
   const frete = parseFloat(localStorage.getItem("frete") || "0");
 
   const resumo = JSON.parse(localStorage.getItem("resumoPedido") || "[]");
-  
+
   const subtotal = resumo.reduce((soma, produto) => {
     const totalAcomp = produto.totalAcompanhamentos || 0;
     return soma + produto.precoTotal + totalAcomp;
   }, 0);
-  
+
   const total = subtotal + frete;
-  
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -130,7 +159,7 @@ export default function SelecionarPagamento() {
             } else {
               localStorage.removeItem("troco");
             }
-            
+
 
             const frete = parseFloat(localStorage.getItem("frete") || "0");
             const totalComFrete = total + frete;
@@ -140,10 +169,14 @@ export default function SelecionarPagamento() {
             navigate("/SorveteriaSummerIce/EnviarPedido");
           }}
           className="w-[100%] flex justify-between items-center px-4 py-3 text-lg font-semibold bg-red-500 hover:bg-red-600 text-white disabled:opacity-60"
-          disabled={!selecionado}
+          disabled={
+            !selecionado || (selecionado === "Dinheiro" && troco.trim() === "")
+          }
         >
           {!selecionado ? (
             <div className="w-full text-center">Selecione uma Forma de Pagamento</div>
+          ) : selecionado === "Dinheiro" && troco.trim() === "" ? (
+            <div className="w-full text-center">Informe o valor do troco</div>
           ) : (
             <>
               <div className="flex items-center gap-2">
@@ -153,6 +186,7 @@ export default function SelecionarPagamento() {
               <span>R$ {total.toFixed(2).replace(".", ",")}</span>
             </>
           )}
+
         </Button>
 
 

@@ -14,7 +14,6 @@ export default function PaginaInicial() {
   const [acompAberta, setAcompAberta] = useState({});
   const [erroGrupo, setErroGrupo] = useState(null);
 
-
   const navigate = useNavigate();
 
   const total = produtos.reduce((soma, produto) => {
@@ -58,7 +57,7 @@ export default function PaginaInicial() {
     return true;
   };
 
-
+  const carrinhoVazio = Object.values(carrinho).every((qtd) => qtd === 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -351,9 +350,9 @@ export default function PaginaInicial() {
               navigate("/SorveteriaSummerIce/ConferirPedido");
             }
           }}
-          className="w-[100%] flex justify-between items-center px-4 py-3 text-lg font-semibold"
+          disabled={carrinhoVazio}
+          className="w-[100%] flex justify-between items-center px-4 py-3 text-lg font-semibold bg-red-500 hover:bg-red-600 text-white disabled:opacity-60"
         >
-
           <div className="flex items-center gap-2">
             <ShoppingCart />
             Conferir Pedido
