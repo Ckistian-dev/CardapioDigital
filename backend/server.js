@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import fs from "fs/promises";
 import path from "path";
+const frontendPath = path.join(__dirname, "dist");
 import { fileURLToPath } from "url";
 
 const app = express();
@@ -62,6 +63,14 @@ app.put("/api/produtos", async (req, res) => {
         res.status(500).json({ error: "Erro ao salvar produtos.json" });
     }
 });
+
+// Serve arquivos do frontend em produção
+app.use(express.static(frontendPath));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
+
 
 
 app.listen(port, () => {
