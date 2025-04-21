@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle} from "lucide-react";
+import { toast } from 'react-toastify';
+
 
 export default function EnviarPedido() {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export default function EnviarPedido() {
   const [troco, setTroco] = useState(null);
   const [total, setTotal] = useState(0);
   const [tipoEntrega, setTipoEntrega] = useState("");
-
+  const [toastPix, setToastPix] = useState(false);
 
   useEffect(() => {
     const nomeLocal = localStorage.getItem("nome");
@@ -67,7 +69,7 @@ export default function EnviarPedido() {
 
 
   const codigoPix = "52764726000102";
-  const nomePix = "Summer Ice Sorvetes LTDA"; 
+  const nomePix = "Summer Ice Sorvetes LTDA";
 
   const textoBase =
     `🌞 *Pedido Summer Ice* 🧊\n\n` +
@@ -89,9 +91,9 @@ export default function EnviarPedido() {
           : "")
       )
       .join("\n\n") +
-      (tipoEntrega === "entrega"
-    ? `\n\n🚚 *Frete:* R$ ${frete.toFixed(2).replace(".", ",")}`
-    : "\n") +
+    (tipoEntrega === "entrega"
+      ? `\n\n🚚 *Frete:* R$ ${frete.toFixed(2).replace(".", ",")}`
+      : "\n") +
     `\n💰 *Total:* R$ ${total.toFixed(2).replace(".", ",")}` +
     `\n💳 *Pagamento:* ${pagamento}` +
     (pagamento === "Dinheiro" && troco
@@ -117,43 +119,26 @@ export default function EnviarPedido() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div
-        className="bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://i.ibb.co/fVSP3ggQ/Chat-GPT-Image-1-de-abr-de-2025-20-02-34.png')",
-        }}
-      >
-        <header className="flex items-center gap-4 p-4">
-          <img
-            src="https://i.ibb.co/hJp6v6jn/Chat-GPT-Image-1-de-abr-de-2025-19-44-40.png"
-            alt="Logo"
-            className="w-16 h-16 rounded-full"
-          />
-          <h1
-            className="text-3xl font-bold text-white tracking-wide"
-            style={{ textShadow: "4px 4px 8px rgba(0,0,0,5)" }}
-          >
-            Summer Ice
-          </h1>
-        </header>
-      </div>
-
       <Card className="flex items-center justify-center shadow-sm overflow-hidden">
         <h2 className="text-xl text-center px-2 py-2">Enviar Pedido</h2>
       </Card>
 
       <main className="p-4 pb-32">
-        <Card className="min-h-[60vh] shadow-sm border">
+        <Card className="h-auto shadow-sm border">
           <CardContent className="p-4 whitespace-pre-line text-sm text-gray-800">
             {decodeURIComponent(mensagem)}
           </CardContent>
         </Card>
 
         {pagamento === "PIX" && (
-          <div className="mt-4 flex justify-center">
+          <div className="mt-4 flex flex-col items-center">
             <Button
-              onClick={() => navigator.clipboard.writeText(codigoPix)}
+              onClick={() => {
+                navigator.clipboard.writeText(codigoPix);
+                toast.success("Código PIX copiado!", {
+                  icon: "✅",
+                });
+              }}
               className="bg-red-500 hover:bg-red-600 text-white text-sm px-12 py-2 rounded"
             >
               Copiar chave PIX

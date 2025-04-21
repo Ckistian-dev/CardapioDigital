@@ -4,7 +4,6 @@ import { Card, CardContent } from "../components/ui/card";
 import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCarrinho } from "../context/CarrinhoContext";
-import produtos from "../data/produtos";
 
 const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY;
 
@@ -26,16 +25,6 @@ export default function SelecionarEntrega() {
 
 
   const { carrinho } = useCarrinho();
-  const produtosSelecionados = produtos.flatMap((produto) => {
-    const qtd = carrinho[produto.id] || 0;
-    if (qtd === 0) return [];
-
-    const acompanhamentos = (produto.acompanhamentos || [])
-      .filter((a) => carrinho[a.id] > 0)
-      .map((a) => ({ ...a, quantidade: carrinho[a.id] }));
-
-    return [{ ...produto, quantidade: qtd, acompanhamentos }];
-  });
 
   const resumo = JSON.parse(localStorage.getItem("resumoPedido") || "[]");
 
@@ -172,25 +161,6 @@ export default function SelecionarEntrega() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div
-        className="bg-cover bg-center"
-        style={{ backgroundImage: "url('https://i.ibb.co/fVSP3ggQ/Chat-GPT-Image-1-de-abr-de-2025-20-02-34.png')" }}
-      >
-        <header className="flex items-center gap-4 p-4">
-          <img
-            src="https://i.ibb.co/hJp6v6jn/Chat-GPT-Image-1-de-abr-de-2025-19-44-40.png"
-            alt="Logo"
-            className="w-16 h-16 rounded-full"
-          />
-          <h1
-            className="text-3xl font-bold text-white tracking-wide"
-            style={{ textShadow: "4px 4px 8px rgba(0,0,0,5)" }}
-          >
-            Summer Ice
-          </h1>
-        </header>
-      </div>
-
       <Card className="flex items-center justify-center shadow-sm overflow-hidden">
         <h2 className="text-xl text-center px-2 py-2">Entrega ou Retirada</h2>
       </Card>

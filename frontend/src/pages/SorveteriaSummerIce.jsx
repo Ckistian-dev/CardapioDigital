@@ -1,51 +1,82 @@
-import React, { useState } from "react";
+// src/pages/PaginaInicial.jsx
+import React, { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCarrinho } from "../context/CarrinhoContext";
 
-import produtos from "../data/produtos";
-
-
-
 export default function PaginaInicial() {
   const { carrinho, alterarQuantidade } = useCarrinho();
+  const [produtos, setProdutos] = useState([]);
+  const [acompanhamentosGrupos, setAcompanhamentosGrupos] = useState([]);
   const [acompAberta, setAcompAberta] = useState({});
   const [erroGrupo, setErroGrupo] = useState(null);
-
   const navigate = useNavigate();
 
-  const total = produtos.reduce((soma, produto) => {
+  useEffect(() => {
+    const fetchDados = async () => {
+      const resProdutos = await fetch("/data/produtos.json");
+      const dadosProdutos = await resProdutos.json();
+      const resAcompanhamentos = await fetch("/data/acompanhamentos.json");
+      const dadosAcomp = await resAcompanhamentos.json();
+
+      setAcompanhamentosGrupos(dadosAcomp);
+
+      const atualizados = dadosProdutos.map((produto) => {
+        if (produto.acompanhamentos?.length > 0) {
+          const gruposCompletos = produto.acompanhamentos
+            .map((grupo) => {
+              const dadosGrupo = dadosAcomp.find((g) => g.nome === grupo.nome);
+              if (!dadosGrupo) return null;
+              return {
+                ...JSON.parse(JSON.stringify(dadosGrupo)),
+                min: grupo.min || 0,
+                max: grupo.max || 999,
+              };
+            })
+            .filter(Boolean);
+          return { ...produto, acompanhamentos: gruposCompletos };
+        }
+        return produto;
+      });
+
+      setProdutos(atualizados);
+    };
+
+    fetchDados();
+  }, []);
+
+  const produtosComAcompanhamentos = produtos;
+
+  const total = produtosComAcompanhamentos.reduce((soma, produto) => {
     const qtd = carrinho[produto.id] || 0;
     let subtotal = produto.preco * qtd;
-
     if (produto.acompanhamentos && qtd > 0) {
       produto.acompanhamentos.forEach((grupo) => {
         grupo.itens.forEach((acomp) => {
-          const qtdAcomp = carrinho[acomp.id] || 0;
+          const itemId = `${produto.id}-${acomp.id}`;
+          const qtdAcomp = carrinho[itemId] || 0;
           subtotal += acomp.preco * qtdAcomp;
         });
       });
     }
-
     return soma + subtotal;
   }, 0);
 
   const verificarMinimos = () => {
-    for (const produto of produtos) {
+    for (const produto of produtosComAcompanhamentos) {
       if (produto.acompanhamentos && carrinho[produto.id] > 0) {
         for (let i = 0; i < produto.acompanhamentos.length; i++) {
           const grupo = produto.acompanhamentos[i];
-          const total = grupo.itens.reduce(
-            (acc, item) => acc + (carrinho[item.id] || 0),
-            0
-          );
-
+          const total = grupo.itens.reduce((acc, item) => {
+            const itemId = `${produto.id}-${item.id}`;
+            return acc + (carrinho[itemId] || 0);
+          }, 0);
           if (grupo.min && total < grupo.min) {
             const idGrupo = `${produto.id}-${i}`;
             setErroGrupo({
-              mensagem: `Selecione no mínimo ${grupo.min} em ${grupo.subcategoria} de "${produto.nome}"`,
+              mensagem: `Selecione no mínimo ${grupo.min} em ${grupo.nome} de "${produto.nome}"`,
               idGrupo,
             });
             return false;
@@ -53,7 +84,6 @@ export default function PaginaInicial() {
         }
       }
     }
-
     return true;
   };
 
@@ -61,27 +91,6 @@ export default function PaginaInicial() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div
-        className="bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://i.ibb.co/fVSP3ggQ/Chat-GPT-Image-1-de-abr-de-2025-20-02-34.png')",
-        }}
-      >
-        <header className="flex items-center gap-4 p-4">
-          <img
-            src="https://i.ibb.co/hJp6v6jn/Chat-GPT-Image-1-de-abr-de-2025-19-44-40.png"
-            alt="Logo"
-            className="w-16 h-16 rounded-full"
-          />
-          <h1
-            className="text-3xl font-bold text-white tracking-wide"
-            style={{ textShadow: "4px 4px 8px rgba(0,0,0,5)" }}
-          >
-            Summer Ice
-          </h1>
-        </header>
-      </div>
 
       <div className="grid grid-cols-4 divide-x divide-gray-200 shadow-sm bg-white rounded overflow-hidden text-center text-lg font-normal sticky top-0 z-10">
         {["Sorvetes", "Lanches", "Porções", "Bebidas"].map((categoria) => (
@@ -105,11 +114,12 @@ export default function PaginaInicial() {
       </div>
 
       <main className="p-2 space-y-4">
-        {["Sorvetes", "Lanches", "Porções", "Bebidas"].map((categoria) => (
+        {produtos.length > 0 && ["Sorvetes", "Lanches", "Porções", "Bebidas"].map((categoria) => (
           <section key={categoria} id={categoria}>
             <h2 className="text-xl font-bold px-2 py-2">{categoria}</h2>
+
             <div className="space-y-3">
-              {produtos
+              {produtosComAcompanhamentos
                 .filter((p) => p.categoria === categoria && p.situacao === "Ativo")
                 .map((produto) => {
                   const qtd = carrinho[produto.id] || 0;
@@ -194,17 +204,16 @@ export default function PaginaInicial() {
                         {produto.acompanhamentos?.map((grupo, index) => {
                           const idGrupo = `${produto.id}-${index}`;
                           const aberto = acompAberta[idGrupo];
-
-                          const totalSelecionado = grupo.itens.reduce(
-                            (acc, i) => acc + (carrinho[i.id] || 0),
-                            0
-                          );
+                          const totalSelecionado = grupo.itens.reduce((acc, item) => {
+                            const itemId = `${produto.id}-${item.id}`;
+                            return acc + (carrinho[itemId] || 0);
+                          }, 0);
                           const atingiuMaximo = grupo.max && totalSelecionado >= grupo.max;
                           const atingiuMinimo = grupo.min && totalSelecionado < grupo.min;
 
+
                           return (
                             <div key={idGrupo} id={idGrupo} className="mb-2">
-
                               {/* Botão de abrir/fechar */}
                               <button
                                 onClick={() =>
@@ -225,17 +234,20 @@ export default function PaginaInicial() {
                                   >
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                                   </svg>
-                                  {grupo.subcategoria}
+                                  {grupo.nome}
                                 </span>
+
                                 <span className="text-xs text-gray-500">
                                   {aberto ? "Clique para ocultar" : "Clique para ver"}
                                 </span>
                               </button>
 
+
                               {/* Itens */}
                               <div className={`transition-all duration-300 overflow-hidden ${aberto ? "max-h-[999999px] mt-2 space-y-2" : "max-h-0"}`}>
                                 {grupo.itens.filter((item) => item.situacao === "Ativo").map((item) => {
-                                  const qtdAcomp = carrinho[item.id] || 0;
+                                  const itemId = `${produto.id}-${item.id}`;
+                                  const qtdAcomp = carrinho[itemId] || 0;
                                   return (
                                     <div
                                       key={item.id}
@@ -256,18 +268,17 @@ export default function PaginaInicial() {
                                         {qtdAcomp > 0 && (
                                           <>
                                             <button
-                                              onClick={() => alterarQuantidade(item.id, -1)}
+                                              onClick={() => alterarQuantidade(itemId, -1)}
                                               className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs"
                                             >
                                               <Minus size={14} />
                                             </button>
-                                            <span className="text-sm">{qtdAcomp}</span>
+                                            <span className="text-sm">{qtdAcomp}</span> {/* <- Deixa aqui dentro */}
                                           </>
                                         )}
+
                                         <button
-                                          onClick={() =>
-                                            !atingiuMaximo && alterarQuantidade(item.id, 1)
-                                          }
+                                          onClick={() => !atingiuMaximo && alterarQuantidade(itemId, 1)}
                                           disabled={atingiuMaximo}
                                           className={`w-6 h-6 ${atingiuMaximo ? "bg-gray-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
                                             } text-white rounded-full flex items-center justify-center text-xs`}
@@ -279,17 +290,18 @@ export default function PaginaInicial() {
                                   );
                                 })}
 
-                                {/* Mensagens de limite */}
                                 {atingiuMaximo && (
                                   <p className="text-xs text-red-500 px-4">
-                                    Máximo de {grupo.max} permitido para {grupo.subcategoria}.
+                                    Máximo de {grupo.max} permitido para {grupo.nome}.
                                   </p>
                                 )}
-                                {grupo.min && atingiuMinimo && (
+                                {grupo.min > 0 && atingiuMinimo && (
                                   <p className="text-xs text-yellow-500 px-4">
-                                    Selecione no mínimo {grupo.min} em {grupo.subcategoria}.
+                                    Selecione no mínimo {grupo.min} em {grupo.nome}.
                                   </p>
                                 )}
+
+
                               </div>
                             </div>
                           );

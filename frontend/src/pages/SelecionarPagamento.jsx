@@ -74,28 +74,6 @@ export default function SelecionarPagamento() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Cabeçalho */}
-      <div
-        className="bg-cover bg-center"
-        style={{
-          backgroundImage: "url('https://i.ibb.co/fVSP3ggQ/Chat-GPT-Image-1-de-abr-de-2025-20-02-34.png')",
-        }}
-      >
-        <header className="flex items-center gap-4 p-4">
-          <img
-            src="https://i.ibb.co/hJp6v6jn/Chat-GPT-Image-1-de-abr-de-2025-19-44-40.png"
-            alt="Logo"
-            className="w-16 h-16 rounded-full"
-          />
-          <h1
-            className="text-3xl font-bold text-white tracking-wide"
-            style={{ textShadow: "4px 4px 8px rgba(0,0,0,5)" }}
-          >
-            Summer Ice
-          </h1>
-        </header>
-      </div>
-
       {/* Título */}
       <Card className="flex items-center justify-center shadow-sm overflow-hidden">
         <h2 className="text-xl text-center px-2 py-2">Forma de Pagamento</h2>
@@ -181,7 +159,7 @@ export default function SelecionarPagamento() {
             <>
               <div className="flex items-center gap-2">
                 <ShoppingCart />
-                Enviar Pedido
+                Analizar Pedido
               </div>
               <span>R$ {total.toFixed(2).replace(".", ",")}</span>
             </>

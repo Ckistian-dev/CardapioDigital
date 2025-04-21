@@ -1,85 +1,84 @@
-import React, { useEffect} from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
-import { ShoppingCart, MapPin } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useCarrinho } from "../context/CarrinhoContext";
 import { useNavigate } from "react-router-dom";
-
-import produtos from "../data/produtos";
 
 export default function FinalizarPedido() {
   const navigate = useNavigate();
   const { carrinho } = useCarrinho();
+  const [produtosSelecionados, setProdutosSelecionados] = useState([]);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const produtos = localStorage.getItem("resumoPedido");
-
-    if (!produtos || !total) {
+    const temProduto = Object.values(carrinho).some((qtd) => qtd > 0);
+    if (!temProduto) {
       navigate("/SorveteriaSummerIce");
-      return;
     }
 
-  }, []);
+    Promise.all([
+      fetch("/data/produtos.json").then((res) => res.json()),
+      fetch("/data/acompanhamentos.json").then((res) => res.json()),
+    ]).then(([produtos, acompanhamentosGrupos]) => {
+      const produtosComAcompanhamentos = produtos.map((produto) => {
+        if (produto.acompanhamentos?.length > 0) {
+          const gruposCompletos = produto.acompanhamentos
+            .map((grupo) => {
+              const dados = acompanhamentosGrupos.find((g) => g.nome === grupo.nome);
+              if (!dados) return null;
+              return {
+                ...dados,
+                min: grupo.min || 0,
+                max: grupo.max || 999,
+              };
+            })
+            .filter(Boolean);
+          return { ...produto, acompanhamentos: gruposCompletos };
+        }
+        return produto;
+      });
 
-  const produtosSelecionados = produtos.flatMap((produto) => {
-    const qtd = carrinho[produto.id] || 0;
-    if (qtd === 0) return [];
+      const selecionados = produtosComAcompanhamentos.flatMap((produto) => {
+        const qtd = carrinho[produto.id] || 0;
+        if (qtd === 0) return [];
 
-    const acompanhamentos = [];
+        const acompanhamentos = [];
 
-    (produto.acompanhamentos || []).forEach((grupo) => {
-      grupo.itens.forEach((item) => {
-        const qtdAcomp = carrinho[item.id] || 0;
-        if (qtdAcomp > 0) {
-          acompanhamentos.push({
-            ...item,
-            quantidade: qtdAcomp,
-            subcategoria: grupo.subcategoria,
+        produto.acompanhamentos?.forEach((grupo) => {
+          grupo.itens.forEach((item) => {
+            const itemId = `${produto.id}-${item.id}`;
+            const qtdAcomp = carrinho[itemId] || 0;
+            if (qtdAcomp > 0) {
+              acompanhamentos.push({
+                ...item,
+                quantidade: qtdAcomp,
+                subcategoria: grupo.nome,
+              });
+            }
+          });
+        });
+
+        return [{ ...produto, quantidade: qtd, acompanhamentos }];
+      });
+
+      const totalGeral = selecionados.reduce((soma, produto) => {
+        let subtotal = produto.preco * produto.quantidade;
+        if (produto.acompanhamentos) {
+          produto.acompanhamentos.forEach((a) => {
+            subtotal += a.preco * a.quantidade;
           });
         }
-      });
+        return soma + subtotal;
+      }, 0);
+
+      setProdutosSelecionados(selecionados);
+      setTotal(totalGeral);
     });
-
-    return [{ ...produto, quantidade: qtd, acompanhamentos }];
-
-  });
-
-  const total = produtosSelecionados.reduce((soma, produto) => {
-    let subtotal = produto.preco * produto.quantidade;
-    if (produto.acompanhamentos) {
-      produto.acompanhamentos.forEach((a) => {
-        subtotal += a.preco * a.quantidade;
-      });
-    }
-    return soma + subtotal;
-  }, 0);
+  }, [carrinho, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Cabeçalho com imagem e nome */}
-      <div
-        className="bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://i.ibb.co/fVSP3ggQ/Chat-GPT-Image-1-de-abr-de-2025-20-02-34.png')",
-        }}
-      >
-        <header className="flex items-center gap-4 p-4">
-          <img
-            src="https://i.ibb.co/hJp6v6jn/Chat-GPT-Image-1-de-abr-de-2025-19-44-40.png"
-            alt="Logo"
-            className="w-16 h-16 rounded-full"
-          />
-          <h1
-            className="text-3xl font-bold text-white tracking-wide"
-            style={{ textShadow: "4px 4px 8px rgba(0,0,0,5)" }}
-          >
-            Summer Ice
-          </h1>
-        </header>
-      </div>
-
-      {/* Conteúdo dos produtos */}
       <Card className="flex items-center justify-center shadow-sm overflow-hidden">
         <h2 className="text-xl text-center px-2 py-2">Resumo do Pedido</h2>
       </Card>
@@ -114,14 +113,11 @@ export default function FinalizarPedido() {
                   ))}
                 </div>
               )}
-
             </CardContent>
           </Card>
-
         ))}
       </main>
 
-      {/* Rodapé com botões */}
       <footer className="fixed bottom-0 left-0 right-0 bg-white shadow-md p-4 border-t">
         <div className="flex gap-2">
           <Button
@@ -156,8 +152,6 @@ export default function FinalizarPedido() {
 
               navigate("/SorveteriaSummerIce/SelecionarEntrega");
             }}
-
-
             className="w-full flex justify-between items-center px-4 py-3 text-lg font-semibold bg-red-500 hover:bg-red-600 text-white"
           >
             <div className="flex items-center gap-2">
@@ -166,7 +160,6 @@ export default function FinalizarPedido() {
             </div>
             <span>R$ {total.toFixed(2).replace(".", ",")}</span>
           </Button>
-
         </div>
       </footer>
     </div>
