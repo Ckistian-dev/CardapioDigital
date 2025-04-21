@@ -3,7 +3,6 @@ import express from "express";
 import cors from "cors";
 import fs from "fs/promises";
 import path from "path";
-const frontendPath = path.join(__dirname, "dist");
 import { fileURLToPath } from "url";
 
 const app = express();
@@ -13,11 +12,11 @@ const port = 3001;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Caminho até acompanhamentos.json
+// Caminhos de arquivos
+const frontendPath = path.join(__dirname, "../frontend/dist");
 const acompanhamentosPath = path.join(__dirname, "../frontend/public/data/acompanhamentos.json");
-
-// Caminho até produtos.json
 const produtosPath = path.join(__dirname, "../frontend/public/data/produtos.json");
+
 
 app.use(cors());
 app.use(express.json());
