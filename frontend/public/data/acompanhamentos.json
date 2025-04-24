@@ -549,6 +549,13 @@
         "imagem": "https://static.ifood-static.com.br/image/upload/t_medium/pratos/4c527891-f8d0-42b7-8a91-ae1d769ca4d4/202503222227_3VA3_i.jpg",
         "preco": 0,
         "situacao": "Ativo"
+      },
+      {
+        "id": "6-1745535464171",
+        "nome": "Carne",
+        "preco": 0,
+        "imagem": "https://static.itdg.com.br/images/640-440/506c13f8a64d4aff32e9669cb2e755bc/328454-original.jpg",
+        "situacao": "Ativo"
       }
     ]
   },
