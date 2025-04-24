@@ -15,7 +15,7 @@ export default function EditarProdutos() {
   useEffect(() => {
     const jaAutenticado = sessionStorage.getItem("autenticadoAdmin");
     if (jaAutenticado) return;
-  
+
     const senha = prompt("Digite a senha para acessar:");
     if (senha === senhaCorreta) {
       sessionStorage.setItem("autenticadoAdmin", "true");
@@ -24,7 +24,7 @@ export default function EditarProdutos() {
       navigate("/SorveteriaSummerIce");
     }
   }, []);
-  
+
 
   const alternarProduto = (id) => {
     setProdutoAberto((atual) => (atual === id ? null : id));
@@ -93,6 +93,23 @@ export default function EditarProdutos() {
     );
   };
 
+  const adicionarProduto = () => {
+    const novoProduto = {
+      id: Date.now(),
+      nome: "",
+      descricao: "",
+      preco: 0,
+      precoOriginal: 0,
+      imagem: "",
+      categoria: "",
+      situacao: "Ativo",
+      acompanhamentos: [],
+    };
+    setProdutos((prev) => [...prev, novoProduto]);
+    setProdutoAberto(novoProduto.id); // já abre para editar
+  };
+
+
   const salvarAlteracoes = async () => {
     try {
       const response = await fetch("http://localhost:3001/api/produtos", {
@@ -114,7 +131,7 @@ export default function EditarProdutos() {
         <h2 className="text-xl text-center px-2 py-2">Editar Produtos</h2>
       </Card>
 
-      <div className="max-w-full px-2 pb-10 mt-5 flex-col itens-center justify-center">
+      <div className="max-w-7xl mx-auto px-2 pb-10 mt-5 flex-col items-center justify-center">
         {produtos.map((produto) => (
           <Card key={produto.id} className="mb-6 shadow-md border border-gray-200">
             <div
@@ -318,6 +335,18 @@ export default function EditarProdutos() {
             )}
           </Card>
         ))}
+
+        <div className="flex items-center gap-3 border rounded px-4 py-3 bg-white shadow-sm mt-6 max-w-7xl mx-auto">
+          <p className="flex-1 text-gray-700 font-medium">Adicionar novo produto ao cardápio</p>
+          <Button
+            onClick={adicionarProduto}
+            className="bg-red-500 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Adicionar Produto
+          </Button>
+        </div>
+
 
         <div className="text-center mt-8">
           <Button onClick={salvarAlteracoes} className="bg-red-600 hover:bg-red-700 text-white">

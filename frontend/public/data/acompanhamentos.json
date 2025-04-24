@@ -664,6 +664,20 @@
         "imagem": "https://static.ifood-static.com.br/image/upload/t_medium/pratos/4c527891-f8d0-42b7-8a91-ae1d769ca4d4/202503222236_7378_i.jpg",
         "preco": 0,
         "situacao": "Ativo"
+      },
+      {
+        "id": "9-1745260357000",
+        "nome": "Carne",
+        "preco": 0,
+        "imagem": "https://media.istockphoto.com/id/535786572/pt/foto/sagital-bife-grelhado.jpg?s=612x612&w=0&k=20&c=h9JZuPdEFSGvdTZGl5IcYg4DsPLlB3x5CLsGKB341g8=",
+        "situacao": "Ativo"
+      },
+      {
+        "id": "9-1745260462822",
+        "nome": "Misto",
+        "preco": 0,
+        "imagem": "https://minhasreceitinhas.com.br/wp-content/uploads/2017/07/iStock-666088088-1200x955.jpg",
+        "situacao": "Ativo"
       }
     ]
   }

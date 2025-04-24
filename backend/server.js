@@ -1,4 +1,3 @@
-// backend/server.js
 import express from "express";
 import cors from "cors";
 import fs from "fs/promises";
@@ -8,15 +7,14 @@ import { fileURLToPath } from "url";
 const app = express();
 const port = 3001;
 
-// Correção de __dirname em ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Caminhos de arquivos
-const frontendPath = path.join(__dirname, "../frontend/dist");
+// Corrigir e normalizar caminho para frontend
+const frontendPath = path.normalize(path.join(__dirname, "../frontend/dist"));
+
 const acompanhamentosPath = path.join(__dirname, "../frontend/public/data/acompanhamentos.json");
 const produtosPath = path.join(__dirname, "../frontend/public/data/produtos.json");
-
 
 app.use(cors());
 app.use(express.json());
@@ -63,14 +61,13 @@ app.put("/api/produtos", async (req, res) => {
     }
 });
 
-// Serve arquivos do frontend em produção
+// Serve arquivos estáticos do frontend
 app.use(express.static(frontendPath));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
-
-
+// Rota corrigida
+//app.get("/*", (req, res) => {
+//    res.sendFile(path.join(frontendPath, "index.html"));
+//});
 
 app.listen(port, () => {
     console.log(`Servidor backend rodando em http://localhost:${port}`);

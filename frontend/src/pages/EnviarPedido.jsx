@@ -114,7 +114,7 @@ export default function EnviarPedido() {
 
 
   const mensagem = encodeURIComponent(textoBase);
-  const numeroWhatsApp = "554598545011";
+  const numeroWhatsApp = "45991542767";
   const linkWhatsApp = `https://api.whatsapp.com/send/?phone=${numeroWhatsApp}&text=${mensagem}`;
 
   return (

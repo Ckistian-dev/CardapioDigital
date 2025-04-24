@@ -23,15 +23,15 @@ export default function EditarAcompanhamentos() {
     useEffect(() => {
         const jaAutenticado = sessionStorage.getItem("autenticadoAdmin");
         if (jaAutenticado) return;
-      
+
         const senha = prompt("Digite a senha para acessar:");
         if (senha === senhaCorreta) {
-          sessionStorage.setItem("autenticadoAdmin", "true");
+            sessionStorage.setItem("autenticadoAdmin", "true");
         } else {
-          alert("Senha incorreta!");
-          navigate("/SorveteriaSummerIce");
+            alert("Senha incorreta!");
+            navigate("/SorveteriaSummerIce");
         }
-      }, []);
+    }, []);
 
     const alternarGrupo = (id) => {
         setGrupoAberto((atual) => (atual === id ? null : id));
@@ -133,7 +133,7 @@ export default function EditarAcompanhamentos() {
                 <h2 className="text-xl text-center px-2 py-2">Editar Acompanhamentos</h2>
             </Card>
 
-            <div className="max-w-screen mx-auto px-4 pb-10 mt-5">
+            <div className="max-w-7xl mx-auto px-4 pb-10 mt-5">
                 {acompanhamentos.map((grupo, grupoIndex) => (
                     <Card key={grupo.id} className="mb-6 shadow-md border border-gray-200">
                         <div
@@ -151,7 +151,7 @@ export default function EditarAcompanhamentos() {
                                     className="text-lg font-semibold bg-white border-2 border-black px-2 py-1 rounded outline-none"
                                 />
                             ) : (
-                                <span className="text-lg font-semibold truncate">{grupo.nome}</span>
+                                <span className="text-lg font-semibold break-words">{grupo.nome}</span>
                             )}
 
 
@@ -202,7 +202,7 @@ export default function EditarAcompanhamentos() {
                                     {grupo.itens.map((item, itemIndex) => (
                                         <div
                                             key={item.id}
-                                            className="col-span-full flex gap-3 bg-slate-50 p-3 rounded items-center"
+                                            className="col-span-full flex flex-col sm:flex-row gap-3 bg-slate-50 p-3 rounded items-start sm:items-center"
                                         >
 
                                             <input
@@ -211,7 +211,7 @@ export default function EditarAcompanhamentos() {
                                                 placeholder="Nome"
                                                 value={item.nome}
                                                 onChange={(e) => handleItemChange(grupoIndex, itemIndex, "nome", e.target.value)}
-                                                className="border p-2 rounded flex-1 min-w-[300px]"
+                                                className="border p-2 rounded w-full sm:min-w-[300px]"
                                                 disabled={itemEditando !== item.id}
                                                 onKeyDown={(e) => {
                                                     if (e.key === "Enter") {
@@ -221,7 +221,8 @@ export default function EditarAcompanhamentos() {
                                                 }}
                                             />
 
-                                            <div className="flex items-center gap-2 w-32">
+                                            <div className="flex items-center gap-2 w-full sm:w-40 lg:w-52">
+
                                                 <span className="text-sm">R$</span>
                                                 <input
                                                     type="text"
@@ -240,7 +241,7 @@ export default function EditarAcompanhamentos() {
 
 
                                             </div>
-                                            <div className="flex gap-2 items-center w-full">
+                                            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full">
                                                 <img src={item.imagem} alt="preview" className="w-12 h-12 rounded object-cover border" />
                                                 <input
                                                     type="text"
@@ -312,7 +313,7 @@ export default function EditarAcompanhamentos() {
                         className="bg-red-500 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2 mr-4"
                     >
                         <Plus size={16} />
-                        Adicionar Grupo
+                        Adicionar
                     </Button>
                 </div>
 
