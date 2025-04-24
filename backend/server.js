@@ -13,8 +13,8 @@ const __dirname = path.dirname(__filename);
 // Corrigir e normalizar caminho para frontend
 const frontendPath = path.normalize(path.join(__dirname, "../frontend/dist"));
 
-const acompanhamentosPath = path.join(__dirname, "../frontend/public/data/acompanhamentos.json");
-const produtosPath = path.join(__dirname, "../frontend/public/data/produtos.json");
+const acompanhamentosPath = path.join(__dirname, "data/acompanhamentos.json");
+const produtosPath = path.join(__dirname, "data/produtos.json");
 
 app.use(cors());
 app.use(express.json());
