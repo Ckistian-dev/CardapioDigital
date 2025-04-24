@@ -64,11 +64,8 @@ app.put("/api/produtos", async (req, res) => {
 // Serve arquivos estáticos do frontend
 app.use(express.static(frontendPath));
 
-// Rota corrigida
-//app.get("/*", (req, res) => {
-//    res.sendFile(path.join(frontendPath, "index.html"));
-//});
 
-app.listen(port, () => {
-    console.log(`Servidor backend rodando em http://localhost:${port}`);
+app.listen(process.env.PORT || 3001, () => {
+    console.log(`Servidor rodando na porta ${process.env.PORT || 3001}`);
 });
+
