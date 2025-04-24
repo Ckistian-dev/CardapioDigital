@@ -7,6 +7,7 @@ import { ShoppingCart } from "lucide-react";
 const opcoesPagamento = [
   { id: "PIX", titulo: "PIX", descricao: "Pagamento Instantâneo" },
   { id: "Cartão de Crédito", titulo: "Cartão de Crédito", descricao: "Pagamento na Entrega" },
+  { id: "Cartão de Débito", titulo: "Cartão de Débito", descricao: "Pagamento na Entrega" },
   { id: "Dinheiro", titulo: "Dinheiro", descricao: "Pagamento na Entrega" },
 ];
 
