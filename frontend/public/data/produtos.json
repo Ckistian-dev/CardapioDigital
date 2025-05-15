@@ -23,6 +23,11 @@
         "nome": "Adicionais",
         "min": 0,
         "max": 5
+      },
+      {
+        "nome": "Adicionais X",
+        "min": 0,
+        "max": 1
       }
     ]
   },
