@@ -1,5 +1,4 @@
-// src/layouts/LayoutCardapio.jsx
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 
 export default function LayoutCardapio() {
   return (
@@ -12,23 +11,24 @@ export default function LayoutCardapio() {
         }}
       >
         <header className="flex items-center gap-4 p-4">
-          <img
-            src="https://i.ibb.co/hJp6v6jn/Chat-GPT-Image-1-de-abr-de-2025-19-44-40.png"
-            alt="Logo"
-            className="w-16 h-16 rounded-full"
-          />
-          <h1
-            className="text-3xl font-bold text-white tracking-wide"
-            style={{ textShadow: "4px 4px 8px rgba(0,0,0,0.5)" }}
-          >
-            Summer Ice
-          </h1>
+          <Link to="/SorveteriaSummerIce" className="flex items-center gap-4">
+            <img
+              src="https://i.ibb.co/hJp6v6jn/Chat-GPT-Image-1-de-abr-de-2025-19-44-40.png"
+              alt="Logo"
+              className="w-16 h-16 rounded-full"
+            />
+            <h1
+              className="text-3xl font-bold text-white tracking-wide"
+              style={{ textShadow: "4px 4px 8px rgba(0,0,0,0.5)" }}
+            >
+              Summer Ice
+            </h1>
+          </Link>
         </header>
       </div>
 
-      {/* Conteúdo da página renderizada */}
       <main>
-        <Outlet/>
+        <Outlet />
       </main>
     </div>
   );

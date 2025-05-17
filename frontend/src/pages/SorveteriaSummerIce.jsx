@@ -16,9 +16,9 @@ export default function PaginaInicial() {
 
   useEffect(() => {
     const fetchDados = async () => {
-      const resProdutos = await fetch("/data/produtos.json");
+      const resProdutos = await fetch("http://localhost:3001/api/produtos");
       const dadosProdutos = await resProdutos.json();
-      const resAcompanhamentos = await fetch("/data/acompanhamentos.json");
+      const resAcompanhamentos = await fetch("http://localhost:3001/api/acompanhamentos");
       const dadosAcomp = await resAcompanhamentos.json();
 
       setAcompanhamentosGrupos(dadosAcomp);

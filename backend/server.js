@@ -1,71 +1,93 @@
 import express from "express";
 import cors from "cors";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import mysql from "mysql2/promise";
 
+// Carrega variáveis de ambiente do .env
+dotenv.config();
+
+// Inicializa o app
 const app = express();
-const port = 3001;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Corrigir e normalizar caminho para frontend
-const frontendPath = path.normalize(path.join(__dirname, "../frontend/dist"));
-
-const acompanhamentosPath = path.join(__dirname, "data/acompanhamentos.json");
-const produtosPath = path.join(__dirname, "data/produtos.json");
-
+// Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // para interpretar JSON no corpo da requisição
 
-// GET acompanhamentos
-app.get("/api/acompanhamentos", async (req, res) => {
-    try {
-        const data = await fs.readFile(acompanhamentosPath, "utf-8");
-        res.json(JSON.parse(data));
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao ler acompanhamentos.json" });
-    }
+// Conexão com MySQL
+const db = await mysql.createConnection({
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 
-// PUT acompanhamentos
-app.put("/api/acompanhamentos", async (req, res) => {
-    try {
-        const dados = JSON.stringify(req.body, null, 2);
-        await fs.writeFile(acompanhamentosPath, dados, "utf-8");
-        res.json({ message: "Acompanhamentos salvos com sucesso!" });
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao salvar acompanhamentos.json" });
-    }
-});
+// =================== ROTAS ===================
 
 // GET produtos
 app.get("/api/produtos", async (req, res) => {
     try {
-        const data = await fs.readFile(produtosPath, "utf-8");
-        res.json(JSON.parse(data));
+        const [rows] = await db.execute("SELECT dados FROM produtos LIMIT 1");
+        if (rows.length > 0) {
+            const dadosJson = typeof rows[0].dados === "string"
+                ? JSON.parse(rows[0].dados)
+                : rows[0].dados;
+            res.json(dadosJson);
+        } else {
+            res.json([]);
+        }
     } catch (err) {
-        res.status(500).json({ error: "Erro ao ler produtos.json" });
+        console.error("Erro ao ler produtos:", err);
+        res.status(500).json({ error: "Erro ao ler produtos do banco" });
     }
 });
 
 // PUT produtos
 app.put("/api/produtos", async (req, res) => {
     try {
-        const dados = JSON.stringify(req.body, null, 2);
-        await fs.writeFile(produtosPath, dados, "utf-8");
-        res.json({ message: "Produtos salvos com sucesso!" });
+        const dados = JSON.stringify(req.body);
+        await db.execute("DELETE FROM produtos");
+        await db.execute("INSERT INTO produtos (dados) VALUES (?)", [dados]);
+        res.json({ message: "Produtos salvos com sucesso no banco!" });
     } catch (err) {
-        res.status(500).json({ error: "Erro ao salvar produtos.json" });
+        console.error("Erro ao salvar produtos:", err);
+        res.status(500).json({ error: "Erro ao salvar produtos no banco" });
     }
 });
 
-// Serve arquivos estáticos do frontend
-app.use(express.static(frontendPath));
-
-
-app.listen(process.env.PORT || 3001, () => {
-    console.log(`Servidor rodando na porta ${process.env.PORT || 3001}`);
+// GET acompanhamentos
+app.get("/api/acompanhamentos", async (req, res) => {
+    try {
+        const [rows] = await db.execute("SELECT dados FROM acompanhamentos LIMIT 1");
+        if (rows.length > 0) {
+            const dadosJson = typeof rows[0].dados === "string"
+                ? JSON.parse(rows[0].dados)
+                : rows[0].dados;
+            res.json(dadosJson);
+        } else {
+            res.json([]);
+        }
+    } catch (err) {
+        console.error("Erro ao ler acompanhamentos:", err);
+        res.status(500).json({ error: "Erro ao ler acompanhamentos do banco" });
+    }
 });
 
+// PUT acompanhamentos
+app.put("/api/acompanhamentos", async (req, res) => {
+    try {
+        const dados = JSON.stringify(req.body);
+        await db.execute("DELETE FROM acompanhamentos");
+        await db.execute("INSERT INTO acompanhamentos (dados) VALUES (?)", [dados]);
+        res.json({ message: "Acompanhamentos salvos com sucesso no banco!" });
+    } catch (err) {
+        console.error("Erro ao salvar acompanhamentos:", err);
+        res.status(500).json({ error: "Erro ao salvar acompanhamentos no banco" });
+    }
+});
+
+// =================== SERVIDOR ===================
+
+app.listen(process.env.PORT || 3001, () => {
+    console.log(`✅ Servidor rodando em http://localhost:${process.env.PORT || 3001}`);
+});

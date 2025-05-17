@@ -32,16 +32,22 @@ export default function EditarProdutos() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const resProdutos = await fetch("/data/produtos.json");
-      const dadosProdutos = await resProdutos.json();
-      setProdutos(dadosProdutos);
+      try {
+        const resProdutos = await fetch(`${import.meta.env.VITE_API_URL}/api/produtos`);
+        const dadosProdutos = await resProdutos.json();
+        setProdutos(dadosProdutos);
 
-      const resGrupos = await fetch("/data/acompanhamentos.json");
-      const dadosGrupos = await resGrupos.json();
-      setAcompanhamentosGrupos(dadosGrupos);
+        const resGrupos = await fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`);
+        const dadosGrupos = await resGrupos.json();
+        setAcompanhamentosGrupos(dadosGrupos);
+      } catch (error) {
+        console.error("Erro ao buscar produtos ou acompanhamentos:", error);
+        alert("Erro ao carregar dados. Verifique sua conexão.");
+      }
     };
     fetchData();
   }, []);
+
 
   const handleChange = (id, campo, valor) => {
     setProdutos((prev) =>
@@ -112,7 +118,7 @@ export default function EditarProdutos() {
 
   const salvarAlteracoes = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/produtos", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/produtos`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(produtos),

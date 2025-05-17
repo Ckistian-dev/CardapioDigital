@@ -39,11 +39,20 @@ export default function EditarAcompanhamentos() {
 
 
     useEffect(() => {
-        fetch("http://localhost:3001/api/acompanhamentos")
+        fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`)
             .then((res) => res.json())
-            .then((data) => setAcompanhamentos(data))
+            .then((data) => {
+                // Garantir que o JSON seja um array válido
+                if (Array.isArray(data)) {
+                    setAcompanhamentos(data);
+                } else {
+                    setErro("Formato inválido dos dados recebidos.");
+                }
+            })
             .catch(() => setErro("Erro ao carregar acompanhamentos."));
     }, []);
+
+
 
     useEffect(() => {
         if (itemEditando && inputRef.current) {
@@ -114,7 +123,7 @@ export default function EditarAcompanhamentos() {
 
     const salvarAlteracoes = async () => {
         try {
-            const response = await fetch("http://localhost:3001/api/acompanhamentos", {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(acompanhamentos),
@@ -126,6 +135,7 @@ export default function EditarAcompanhamentos() {
             alert("Erro ao salvar as alterações.");
         }
     };
+
 
     return (
         <div className="min-h-screen bg-gray-50">
