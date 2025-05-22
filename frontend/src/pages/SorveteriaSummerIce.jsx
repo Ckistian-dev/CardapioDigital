@@ -13,39 +13,47 @@ export default function PaginaInicial() {
   const [acompAberta, setAcompAberta] = useState({});
   const [erroGrupo, setErroGrupo] = useState(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     const fetchDados = async () => {
-      const resProdutos = await fetch(`${import.meta.env.VITE_API_URL}/api/produtos`);
-      const dadosProdutos = await resProdutos.json();
+      try {
+        const resProdutos = await fetch(`${import.meta.env.VITE_API_URL}/api/produtos`);
+        const dadosProdutos = await resProdutos.json();
 
-      const resAcompanhamentos = await fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`);
-      const dadosAcomp = await resAcompanhamentos.json();
+        const resAcompanhamentos = await fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`);
+        const dadosAcomp = await resAcompanhamentos.json();
 
-      setAcompanhamentosGrupos(dadosAcomp);
+        setAcompanhamentosGrupos(dadosAcomp);
 
-      const atualizados = dadosProdutos.map((produto) => {
-        if (produto.acompanhamentos?.length > 0) {
-          const gruposCompletos = produto.acompanhamentos
-            .map((grupo) => {
-              const dadosGrupo = dadosAcomp.find((g) => g.nome === grupo.nome);
-              if (!dadosGrupo) return null;
-              return {
-                ...JSON.parse(JSON.stringify(dadosGrupo)),
-                min: grupo.min || 0,
-                max: grupo.max || 999,
-              };
-            })
-            .filter(Boolean);
-          return { ...produto, acompanhamentos: gruposCompletos };
-        }
-        return produto;
-      });
+        const atualizados = dadosProdutos.map((produto) => {
+          if (produto.acompanhamentos?.length > 0) {
+            const gruposCompletos = produto.acompanhamentos
+              .map((grupo) => {
+                const dadosGrupo = dadosAcomp.find((g) => g.nome === grupo.nome);
+                if (!dadosGrupo) return null;
+                return {
+                  ...JSON.parse(JSON.stringify(dadosGrupo)),
+                  min: grupo.min || 0,
+                  max: grupo.max || 999,
+                };
+              })
+              .filter(Boolean);
+            return { ...produto, acompanhamentos: gruposCompletos };
+          }
+          return produto;
+        });
 
-      setProdutos(atualizados);
+        setProdutos(atualizados);
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+      } finally {
+        setLoading(false); // <-- aqui no final do async
+      }
     };
 
-    fetchDados();
+    fetchDados(); // agora sim, sem setLoading aqui
   }, []);
 
   const produtosComAcompanhamentos = produtos;
@@ -115,210 +123,235 @@ export default function PaginaInicial() {
       </div>
 
       <main className="p-2 space-y-4">
-        {produtos.length > 0 && ["Sorvetes", "Lanches", "Porções", "Bebidas"].map((categoria) => (
-          <section key={categoria} id={categoria}>
-            <h2 className="text-xl font-bold px-2 py-2">{categoria}</h2>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-600 animate-fade-in">
+            <svg
+              className="animate-spin h-8 w-8 text-red-500 mb-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+            <p className="text-lg font-medium">Carregando itens...</p>
+          </div>
+        ) : (
+          produtos.length > 0 && ["Sorvetes", "Lanches", "Porções", "Bebidas"].map((categoria) => (
 
-            <div className="space-y-3">
-              {produtosComAcompanhamentos
-                .filter((p) => p.categoria === categoria && p.situacao === "Ativo")
-                .map((produto) => {
-                  const qtd = carrinho[produto.id] || 0;
-                  const precoOriginal =
-                    produto.precoOriginal || produto.preco * 1.25;
-                  const temDesconto = produto.preco < precoOriginal;
+            <section key={categoria} id={categoria}>
+              <h2 className="text-xl font-bold px-2 py-2">{categoria}</h2>
 
-                  return (
-                    <Card
-                      key={produto.id}
-                      className="flex flex-col shadow-sm"
-                    >
-                      <div className="flex h-auto">
-                        <div className="w-36 h-auto">
-                          <img
-                            src={produto.imagem}
-                            alt={produto.nome}
-                            className="w-full h-full object-fill rounded"
-                          />
+              <div className="space-y-3">
+                {produtosComAcompanhamentos
+                  .filter((p) => p.categoria === categoria && p.situacao === "Ativo")
+                  .map((produto) => {
+                    const qtd = carrinho[produto.id] || 0;
+                    const precoOriginal =
+                      produto.precoOriginal || produto.preco * 1.25;
+                    const temDesconto = produto.preco < precoOriginal;
+
+                    return (
+                      <Card
+                        key={produto.id}
+                        className="flex flex-col shadow-sm"
+                      >
+                        <div className="flex h-auto">
+                          <div className="w-36 h-auto">
+                            <img
+                              src={produto.imagem}
+                              alt={produto.nome}
+                              className="w-full h-full object-fill rounded"
+                            />
+                          </div>
+
+                          <CardContent className="flex flex-col justify-between flex-1 px-2 py-2">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-1">
+                                <h2 className="text-sm sm:text-base font-semibold">
+                                  {produto.nome}
+                                </h2>
+                                <p className="text-xs sm:text-sm text-gray-500">
+                                  {produto.descricao}
+                                </p>
+                              </div>
+                              {produto.precoOriginal > produto.preco && (
+                                <span className="bg-orange-400 text-white text-[10px] sm:text-xs px-2 py-1 rounded-full ml-2">
+                                  -{Math.round(100 - (produto.preco * 100) / produto.precoOriginal)}%
+                                </span>
+                              )}
+
+                            </div>
+
+                            <div className="flex items-end justify-between mt-auto pt-2">
+                              <div>
+                                <span className="text-red-600 font-bold mr-2 text-sm sm:text-base">
+                                  R$ {produto.preco.toFixed(2).replace(".", ",")}
+                                </span>
+                                {temDesconto && (
+                                  <span className="text-gray-400 line-through text-xs sm:text-sm">
+                                    R$ {precoOriginal
+                                      .toFixed(2)
+                                      .replace(".", ",")}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {qtd > 0 && (
+                                  <>
+                                    <button
+                                      onClick={() => alterarQuantidade(produto.id, -1)}
+                                      className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-gray-200 text-black rounded-full hover:bg-gray-300"
+                                    >
+                                      <Minus size={14} />
+                                    </button>
+                                    <span className="min-w-[20px] text-center text-sm font-medium">
+                                      {qtd}
+                                    </span>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() =>
+                                    alterarQuantidade(produto.id, 1)
+                                  }
+                                  className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600"
+                                >
+                                  <Plus size={14} />
+                                </button>
+                              </div>
+
+                            </div>
+                          </CardContent>
                         </div>
 
-                        <CardContent className="flex flex-col justify-between flex-1 px-2 py-2">
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1">
-                              <h2 className="text-sm sm:text-base font-semibold">
-                                {produto.nome}
-                              </h2>
-                              <p className="text-xs sm:text-sm text-gray-500">
-                                {produto.descricao}
-                              </p>
-                            </div>
-                            {produto.precoOriginal > produto.preco && (
-                              <span className="bg-orange-400 text-white text-[10px] sm:text-xs px-2 py-1 rounded-full ml-2">
-                                -{Math.round(100 - (produto.preco * 100) / produto.precoOriginal)}%
-                              </span>
-                            )}
-
-                          </div>
-
-                          <div className="flex items-end justify-between mt-auto pt-2">
-                            <div>
-                              <span className="text-red-600 font-bold mr-2 text-sm sm:text-base">
-                                R$ {produto.preco.toFixed(2).replace(".", ",")}
-                              </span>
-                              {temDesconto && (
-                                <span className="text-gray-400 line-through text-xs sm:text-sm">
-                                  R$ {precoOriginal
-                                    .toFixed(2)
-                                    .replace(".", ",")}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {qtd > 0 && (
-                                <>
-                                  <button
-                                    onClick={() => alterarQuantidade(produto.id, -1)}
-                                    className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-gray-200 text-black rounded-full hover:bg-gray-300"
-                                  >
-                                    <Minus size={14} />
-                                  </button>
-                                  <span className="min-w-[20px] text-center text-sm font-medium">
-                                    {qtd}
-                                  </span>
-                                </>
-                              )}
-                              <button
-                                onClick={() =>
-                                  alterarQuantidade(produto.id, 1)
-                                }
-                                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600"
-                              >
-                                <Plus size={14} />
-                              </button>
-                            </div>
-
-                          </div>
-                        </CardContent>
-                      </div>
-
-                      <div className={`transition-all duration-300 overflow-hidden ${qtd > 0 && produto.acompanhamentos?.length > 0 ? "max-h-auto mt-1 space-y-1" : "max-h-0"}`} >
-                        {produto.acompanhamentos?.map((grupo, index) => {
-                          const idGrupo = `${produto.id}-${index}`;
-                          const aberto = acompAberta[idGrupo];
-                          const totalSelecionado = grupo.itens.reduce((acc, item) => {
-                            const itemId = `${produto.id}-${item.id}`;
-                            return acc + (carrinho[itemId] || 0);
-                          }, 0);
-                          const atingiuMaximo = grupo.max && totalSelecionado >= grupo.max;
-                          const atingiuMinimo = grupo.min && totalSelecionado < grupo.min;
+                        <div className={`transition-all duration-300 overflow-hidden ${qtd > 0 && produto.acompanhamentos?.length > 0 ? "max-h-auto mt-1 space-y-1" : "max-h-0"}`} >
+                          {produto.acompanhamentos?.map((grupo, index) => {
+                            const idGrupo = `${produto.id}-${index}`;
+                            const aberto = acompAberta[idGrupo];
+                            const totalSelecionado = grupo.itens.reduce((acc, item) => {
+                              const itemId = `${produto.id}-${item.id}`;
+                              return acc + (carrinho[itemId] || 0);
+                            }, 0);
+                            const atingiuMaximo = grupo.max && totalSelecionado >= grupo.max;
+                            const atingiuMinimo = grupo.min && totalSelecionado < grupo.min;
 
 
-                          return (
-                            <div key={idGrupo} id={idGrupo} className="mb-2">
-                              {/* Botão de abrir/fechar */}
-                              <button
-                                onClick={() =>
-                                  setAcompAberta((prev) => ({
-                                    ...prev,
-                                    [idGrupo]: !prev[idGrupo],
-                                  }))
-                                }
-                                className="w-full flex items-center justify-between text-sm font-semibold bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded transition"
-                              >
-                                <span className="flex items-center gap-2">
-                                  <svg
-                                    className={`w-4 h-4 transform transition-transform ${aberto ? "rotate-90" : "rotate-0"}`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                                  </svg>
-                                  {grupo.nome}
-                                </span>
-
-                                <span className="text-xs text-gray-500">
-                                  {aberto ? "Clique para ocultar" : "Clique para ver"}
-                                </span>
-                              </button>
-
-
-                              {/* Itens */}
-                              <div className={`transition-all duration-300 overflow-hidden ${aberto ? "max-h-[999999px] mt-2 space-y-2" : "max-h-0"}`}>
-                                {grupo.itens.filter((item) => item.situacao === "Ativo").map((item) => {
-                                  const itemId = `${produto.id}-${item.id}`;
-                                  const qtdAcomp = carrinho[itemId] || 0;
-                                  return (
-                                    <div
-                                      key={item.id}
-                                      className="flex items-center gap-2 bg-white border rounded shadow-sm px-3 py-2"
+                            return (
+                              <div key={idGrupo} id={idGrupo} className="mb-2">
+                                {/* Botão de abrir/fechar */}
+                                <button
+                                  onClick={() =>
+                                    setAcompAberta((prev) => ({
+                                      ...prev,
+                                      [idGrupo]: !prev[idGrupo],
+                                    }))
+                                  }
+                                  className="w-full flex items-center justify-between text-sm font-semibold bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded transition"
+                                >
+                                  <span className="flex items-center gap-2">
+                                    <svg
+                                      className={`w-4 h-4 transform transition-transform ${aberto ? "rotate-90" : "rotate-0"}`}
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      viewBox="0 0 24 24"
                                     >
-                                      <img
-                                        src={item.imagem}
-                                        alt={item.nome}
-                                        className="w-12 h-12 object-cover rounded"
-                                      />
-                                      <div className="flex-1 flex justify-between items-center">
-                                        <p className="text-sm font-medium">{item.nome}</p>
-                                        <span className="text-sm text-gray-600">
-                                          R$ {item.preco.toFixed(2).replace(".", ",")}
-                                        </span>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                    {grupo.nome}
+                                  </span>
+
+                                  <span className="text-xs text-gray-500">
+                                    {aberto ? "Clique para ocultar" : "Clique para ver"}
+                                  </span>
+                                </button>
+
+
+                                {/* Itens */}
+                                <div className={`transition-all duration-300 overflow-hidden ${aberto ? "max-h-[999999px] mt-2 space-y-2" : "max-h-0"}`}>
+                                  {grupo.itens.filter((item) => item.situacao === "Ativo").map((item) => {
+                                    const itemId = `${produto.id}-${item.id}`;
+                                    const qtdAcomp = carrinho[itemId] || 0;
+                                    return (
+                                      <div
+                                        key={item.id}
+                                        className="flex items-center gap-2 bg-white border rounded shadow-sm px-3 py-2"
+                                      >
+                                        <img
+                                          src={item.imagem}
+                                          alt={item.nome}
+                                          className="w-12 h-12 object-cover rounded"
+                                        />
+                                        <div className="flex-1 flex justify-between items-center">
+                                          <p className="text-sm font-medium">{item.nome}</p>
+                                          <span className="text-sm text-gray-600">
+                                            R$ {item.preco.toFixed(2).replace(".", ",")}
+                                          </span>
+                                        </div>
+                                        <div className="min-w-[70px] flex items-center justify-end gap-1">
+                                          {qtdAcomp > 0 && (
+                                            <>
+                                              <button
+                                                onClick={() => alterarQuantidade(itemId, -1)}
+                                                className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs"
+                                              >
+                                                <Minus size={14} />
+                                              </button>
+                                              <span className="text-sm">{qtdAcomp}</span> {/* <- Deixa aqui dentro */}
+                                            </>
+                                          )}
+
+                                          <button
+                                            onClick={() => !atingiuMaximo && alterarQuantidade(itemId, 1)}
+                                            disabled={atingiuMaximo}
+                                            className={`w-6 h-6 ${atingiuMaximo ? "bg-gray-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
+                                              } text-white rounded-full flex items-center justify-center text-xs`}
+                                          >
+                                            <Plus size={14} />
+                                          </button>
+                                        </div>
                                       </div>
-                                      <div className="min-w-[70px] flex items-center justify-end gap-1">
-                                        {qtdAcomp > 0 && (
-                                          <>
-                                            <button
-                                              onClick={() => alterarQuantidade(itemId, -1)}
-                                              className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs"
-                                            >
-                                              <Minus size={14} />
-                                            </button>
-                                            <span className="text-sm">{qtdAcomp}</span> {/* <- Deixa aqui dentro */}
-                                          </>
-                                        )}
+                                    );
+                                  })}
 
-                                        <button
-                                          onClick={() => !atingiuMaximo && alterarQuantidade(itemId, 1)}
-                                          disabled={atingiuMaximo}
-                                          className={`w-6 h-6 ${atingiuMaximo ? "bg-gray-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
-                                            } text-white rounded-full flex items-center justify-center text-xs`}
-                                        >
-                                          <Plus size={14} />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-
-                                {atingiuMaximo && (
-                                  <p className="text-xs text-red-500 px-4">
-                                    Máximo de {grupo.max} permitido para {grupo.nome}.
-                                  </p>
-                                )}
-                                {grupo.min > 0 && atingiuMinimo && (
-                                  <p className="text-xs text-yellow-500 px-4">
-                                    Selecione no mínimo {grupo.min} em {grupo.nome}.
-                                  </p>
-                                )}
+                                  {atingiuMaximo && (
+                                    <p className="text-xs text-red-500 px-4">
+                                      Máximo de {grupo.max} permitido para {grupo.nome}.
+                                    </p>
+                                  )}
+                                  {grupo.min > 0 && atingiuMinimo && (
+                                    <p className="text-xs text-yellow-500 px-4">
+                                      Selecione no mínimo {grupo.min} em {grupo.nome}.
+                                    </p>
+                                  )}
 
 
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
 
 
-                      </div>
-                    </Card>
-                  );
-                })}
-            </div>
-          </section>
-        ))}
+                        </div>
+                      </Card>
+                    );
+                  })}
+              </div>
+            </section>
+          )))}
 
         <div className="h-[50px]" />
-
       </main>
 
       {erroGrupo && (

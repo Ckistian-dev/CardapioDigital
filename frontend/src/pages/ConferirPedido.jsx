@@ -10,72 +10,80 @@ export default function FinalizarPedido() {
   const { carrinho } = useCarrinho();
   const [produtosSelecionados, setProdutosSelecionados] = useState([]);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     const temProduto = Object.values(carrinho).some((qtd) => qtd > 0);
     if (!temProduto) {
       navigate("/SorveteriaSummerIce");
+      return;
     }
+
+    setLoading(true); // inicia carregando
 
     Promise.all([
       fetch(`${import.meta.env.VITE_API_URL}/api/produtos`).then((res) => res.json()),
       fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`).then((res) => res.json()),
-    ]).then(([produtos, acompanhamentosGrupos]) => {
-      const produtosComAcompanhamentos = produtos.map((produto) => {
-        if (produto.acompanhamentos?.length > 0) {
-          const gruposCompletos = produto.acompanhamentos
-            .map((grupo) => {
-              const dados = acompanhamentosGrupos.find((g) => g.nome === grupo.nome);
-              if (!dados) return null;
-              return {
-                ...dados,
-                min: grupo.min || 0,
-                max: grupo.max || 999,
-              };
-            })
-            .filter(Boolean);
-          return { ...produto, acompanhamentos: gruposCompletos };
-        }
-        return produto;
-      });
-
-      const selecionados = produtosComAcompanhamentos.flatMap((produto) => {
-        const qtd = carrinho[produto.id] || 0;
-        if (qtd === 0) return [];
-
-        const acompanhamentos = [];
-
-        produto.acompanhamentos?.forEach((grupo) => {
-          grupo.itens.forEach((item) => {
-            const itemId = `${produto.id}-${item.id}`;
-            const qtdAcomp = carrinho[itemId] || 0;
-            if (qtdAcomp > 0) {
-              acompanhamentos.push({
-                ...item,
-                quantidade: qtdAcomp,
-                subcategoria: grupo.nome,
-              });
-            }
-          });
+    ])
+      .then(([produtos, acompanhamentosGrupos]) => {
+        const produtosComAcompanhamentos = produtos.map((produto) => {
+          if (produto.acompanhamentos?.length > 0) {
+            const gruposCompletos = produto.acompanhamentos
+              .map((grupo) => {
+                const dados = acompanhamentosGrupos.find((g) => g.nome === grupo.nome);
+                if (!dados) return null;
+                return {
+                  ...dados,
+                  min: grupo.min || 0,
+                  max: grupo.max || 999,
+                };
+              })
+              .filter(Boolean);
+            return { ...produto, acompanhamentos: gruposCompletos };
+          }
+          return produto;
         });
 
-        return [{ ...produto, quantidade: qtd, acompanhamentos }];
-      });
+        const selecionados = produtosComAcompanhamentos.flatMap((produto) => {
+          const qtd = carrinho[produto.id] || 0;
+          if (qtd === 0) return [];
 
-      const totalGeral = selecionados.reduce((soma, produto) => {
-        let subtotal = produto.preco * produto.quantidade;
-        if (produto.acompanhamentos) {
-          produto.acompanhamentos.forEach((a) => {
-            subtotal += a.preco * a.quantidade;
+          const acompanhamentos = [];
+
+          produto.acompanhamentos?.forEach((grupo) => {
+            grupo.itens.forEach((item) => {
+              const itemId = `${produto.id}-${item.id}`;
+              const qtdAcomp = carrinho[itemId] || 0;
+              if (qtdAcomp > 0) {
+                acompanhamentos.push({
+                  ...item,
+                  quantidade: qtdAcomp,
+                  subcategoria: grupo.nome,
+                });
+              }
+            });
           });
-        }
-        return soma + subtotal;
-      }, 0);
 
-      setProdutosSelecionados(selecionados);
-      setTotal(totalGeral);
-    });
+          return [{ ...produto, quantidade: qtd, acompanhamentos }];
+        });
+
+        const totalGeral = selecionados.reduce((soma, produto) => {
+          let subtotal = produto.preco * produto.quantidade;
+          if (produto.acompanhamentos) {
+            produto.acompanhamentos.forEach((a) => {
+              subtotal += a.preco * a.quantidade;
+            });
+          }
+          return soma + subtotal;
+        }, 0);
+
+        setProdutosSelecionados(selecionados);
+        setTotal(totalGeral);
+      })
+      .finally(() => setLoading(false));
   }, [carrinho, navigate]);
+
 
 
   return (
@@ -84,41 +92,68 @@ export default function FinalizarPedido() {
         <h2 className="text-xl text-center px-2 py-2">Resumo do Pedido</h2>
       </Card>
 
-      <main className="p-2 space-y-2">
-        {produtosSelecionados.map((produto) => (
-          <Card key={produto.id} className="shadow-sm border rounded overflow-hidden">
-            <CardContent className="p-2 space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-base font-semibold text-gray-800">{produto.nome}</span>
-                <span className="text-sm text-gray-500">x{produto.quantidade}</span>
-              </div>
-              <div className="text-sm text-red-600 font-bold">
-                R$ {(produto.preco * produto.quantidade).toFixed(2).replace(".", ",")}
-              </div>
+      {loading ? (
+        <main className="flex flex-col items-center justify-center py-16 text-gray-600 animate-fade-in">
+          <svg
+            className="animate-spin h-8 w-8 text-red-500 mb-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
+          <p className="text-lg font-medium">Carregando pedido...</p>
+        </main>
+      ) : (
+        <>
+          <main className="p-2 space-y-2">
+            {produtosSelecionados.map((produto) => (
+              <Card key={produto.id} className="shadow-sm border rounded overflow-hidden">
+                <CardContent className="p-2 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-base font-semibold text-gray-800">{produto.nome}</span>
+                    <span className="text-sm text-gray-500">x{produto.quantidade}</span>
+                  </div>
+                  <div className="text-sm text-red-600 font-bold">
+                    R$ {(produto.preco * produto.quantidade).toFixed(2).replace(".", ",")}
+                  </div>
 
-              {produto.acompanhamentos?.length > 0 && (
-                <div className="mt-2 border-t pt-2 space-y-2">
-                  {produto.acompanhamentos.map((a, index) => (
-                    <div key={index} className="text-sm text-gray-600">
-                      <div className="flex justify-between">
-                        <div className="flex flex-col">
-                          <span className="font-medium">+ {a.nome}</span>
-                          <span className="text-xs text-gray-400">
-                            {a.subcategoria && <>{a.subcategoria} · </>}
-                            R$ {(a.preco * a.quantidade).toFixed(2).replace(".", ",")}
-                          </span>
+                  {produto.acompanhamentos?.length > 0 && (
+                    <div className="mt-2 border-t pt-2 space-y-2">
+                      {produto.acompanhamentos.map((a, index) => (
+                        <div key={index} className="text-sm text-gray-600">
+                          <div className="flex justify-between">
+                            <div className="flex flex-col">
+                              <span className="font-medium">+ {a.nome}</span>
+                              <span className="text-xs text-gray-400">
+                                {a.subcategoria && <>{a.subcategoria} · </>}
+                                R$ {(a.preco * a.quantidade).toFixed(2).replace(".", ",")}
+                              </span>
+                            </div>
+                            <span className="text-sm">x{a.quantidade}</span>
+                          </div>
                         </div>
-                        <span className="text-sm">x{a.quantidade}</span>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </main>
-
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </main>
+        </>
+      )}
       <footer className="fixed bottom-0 left-0 right-0 bg-white shadow-md p-4 border-t">
         <div className="flex gap-2">
           <Button
@@ -130,10 +165,13 @@ export default function FinalizarPedido() {
                   quantidade: a.quantidade,
                   precoUnitario: a.preco,
                   precoTotal: parseFloat((a.preco * a.quantidade).toFixed(2)),
-                  subcategoria: a.subcategoria || null
+                  subcategoria: a.subcategoria || null,
                 }));
 
-                const totalAcompanhamentos = acompanhamentos.reduce((soma, a) => soma + a.precoTotal, 0);
+                const totalAcompanhamentos = acompanhamentos.reduce(
+                  (soma, a) => soma + a.precoTotal,
+                  0
+                );
 
                 return {
                   id: produto.id,
@@ -146,7 +184,10 @@ export default function FinalizarPedido() {
                 };
               });
 
-              const totalGeral = resumoPedido.reduce((soma, p) => soma + p.precoTotal + (p.totalAcompanhamentos || 0), 0);
+              const totalGeral = resumoPedido.reduce(
+                (soma, p) => soma + p.precoTotal + (p.totalAcompanhamentos || 0),
+                0
+              );
 
               localStorage.setItem("resumoPedido", JSON.stringify(resumoPedido));
               localStorage.setItem("totalPedido", totalGeral.toFixed(2));
@@ -163,6 +204,8 @@ export default function FinalizarPedido() {
           </Button>
         </div>
       </footer>
+
     </div>
   );
+
 }
