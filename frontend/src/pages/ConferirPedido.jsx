@@ -18,8 +18,8 @@ export default function FinalizarPedido() {
     }
 
     Promise.all([
-      fetch("/data/produtos.json").then((res) => res.json()),
-      fetch("/data/acompanhamentos.json").then((res) => res.json()),
+      fetch(`${import.meta.env.VITE_API_URL}/api/produtos`).then((res) => res.json()),
+      fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`).then((res) => res.json()),
     ]).then(([produtos, acompanhamentosGrupos]) => {
       const produtosComAcompanhamentos = produtos.map((produto) => {
         if (produto.acompanhamentos?.length > 0) {
@@ -76,6 +76,7 @@ export default function FinalizarPedido() {
       setTotal(totalGeral);
     });
   }, [carrinho, navigate]);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
