@@ -3,7 +3,6 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useCarrinho } from "../context/CarrinhoContext";
 
 const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY;
 
@@ -22,9 +21,6 @@ export default function SelecionarEntrega() {
   });
 
   const [calculandoFrete, setCalculandoFrete] = useState(false);
-
-
-  const { carrinho } = useCarrinho();
 
   const resumo = JSON.parse(localStorage.getItem("resumoPedido") || "[]");
 
@@ -116,10 +112,10 @@ export default function SelecionarEntrega() {
       ) {
         const distanciaKm = matrixData.distances[0][1];
 
-        let valor = 5;
+        let valor = 10;
         for (let i = 1; i <= 10; i++) {
           if (distanciaKm <= i) {
-            valor = 5 + (i - 1) * 2;
+            valor = 10 + (i - 1) * 2;
             break;
           }
         }
