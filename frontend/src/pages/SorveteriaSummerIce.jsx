@@ -122,7 +122,7 @@ export default function PaginaInicial() {
 
       <main className="p-2 space-y-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-600 animate-fade-in">
+          <div className="h-full flex flex-col items-center justify-center text-gray-600 my-[75%]">
             <svg
               className="animate-spin h-8 w-8 text-red-500 mb-4"
               xmlns="http://www.w3.org/2000/svg"
@@ -143,7 +143,7 @@ export default function PaginaInicial() {
                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
               ></path>
             </svg>
-            <p className="text-lg font-medium">Carregando itens...</p>
+            <p className="text-lg font-medium">Carregando Itens...</p>
           </div>
         ) : (
           produtos.length > 0 && ["Sorvetes", "Lanches", "Porções", "Bebidas"].map((categoria) => (
@@ -394,7 +394,7 @@ export default function PaginaInicial() {
               navigate("/SorveteriaSummerIce/ConferirPedido");
             }
           }}
-          disabled={carrinhoVazio}
+          disabled={carrinhoVazio || total === 0}
           className="w-[100%] flex justify-between items-center px-4 py-3 text-lg font-semibold bg-red-500 hover:bg-red-600 text-white disabled:opacity-60"
         >
           <div className="flex items-center gap-2">

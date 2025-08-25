@@ -1,8 +1,11 @@
+// src/layouts/LayoutCardapio.jsx (AJUSTADO)
+
 import { Outlet, Link } from "react-router-dom";
 
 export default function LayoutCardapio() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    // 1. Adicionado "flex flex-col" para controlar o layout verticalmente
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <div
         className="bg-cover bg-center"
         style={{
@@ -27,7 +30,8 @@ export default function LayoutCardapio() {
         </header>
       </div>
 
-      <main>
+      {/* 2. Adicionado "flex-grow" para que esta área ocupe todo o espaço restante */}
+      <main className="flex-grow">
         <Outlet />
       </main>
     </div>
