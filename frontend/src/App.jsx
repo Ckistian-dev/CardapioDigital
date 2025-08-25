@@ -8,8 +8,6 @@ import ConferirPedido from "./pages/ConferirPedido";
 import SelecionarEntrega from "./pages/SelecionarEntrega";
 import SelecionarPagamento from "./pages/SelecionarPagamento";
 import EnviarPedido from "./pages/EnviarPedido";
-import EditarProdutos from "./pages/EditarProdutos";
-import EditarAcompanhamentos from "./pages/EditarAcompanhamentos";
 import LayoutCardapio from "./layouts/LayoutCardapio";
 
 function App() {
@@ -40,8 +38,6 @@ function App() {
             <Route path="SelecionarEntrega" element={<SelecionarEntrega />} />
             <Route path="SelecionarPagamento" element={<SelecionarPagamento />} />
             <Route path="EnviarPedido" element={<EnviarPedido />} />
-            <Route path="EditarProdutos" element={<EditarProdutos />} />
-            <Route path="EditarAcompanhamentos" element={<EditarAcompanhamentos />} />
           </Route>
         </Routes>
       </BrowserRouter>

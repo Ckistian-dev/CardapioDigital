@@ -9,23 +9,21 @@ import { useCarrinho } from "../context/CarrinhoContext";
 export default function PaginaInicial() {
   const { carrinho, alterarQuantidade } = useCarrinho();
   const [produtos, setProdutos] = useState([]);
-  const [acompanhamentosGrupos, setAcompanhamentosGrupos] = useState([]);
+  // Não precisamos mais do estado de acompanhamentos aqui
   const [acompAberta, setAcompAberta] = useState({});
   const [erroGrupo, setErroGrupo] = useState(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
     const fetchDados = async () => {
       try {
-        const resProdutos = await fetch(`${import.meta.env.VITE_API_URL}/api/produtos`);
-        const dadosProdutos = await resProdutos.json();
+        setLoading(true);
+        const res = await fetch(import.meta.env.VITE_GOOGLE_SCRIPT_URL);
+        const dados = await res.json();
 
-        const resAcompanhamentos = await fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`);
-        const dadosAcomp = await resAcompanhamentos.json();
-
-        setAcompanhamentosGrupos(dadosAcomp);
+        const dadosProdutos = dados.produtos || [];
+        const dadosAcomp = dados.acompanhamentos || [];
 
         const atualizados = dadosProdutos.map((produto) => {
           if (produto.acompanhamentos?.length > 0) {
@@ -47,13 +45,13 @@ export default function PaginaInicial() {
 
         setProdutos(atualizados);
       } catch (err) {
-        console.error("Erro ao carregar dados:", err);
+        console.error("Erro ao carregar dados do Google Sheets:", err);
       } finally {
-        setLoading(false); // <-- aqui no final do async
+        setLoading(false);
       }
     };
 
-    fetchDados(); // agora sim, sem setLoading aqui
+    fetchDados();
   }, []);
 
   const produtosComAcompanhamentos = produtos;

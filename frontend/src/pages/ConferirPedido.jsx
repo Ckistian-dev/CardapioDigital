@@ -1,3 +1,5 @@
+// src/pages/FinalizarPedido.jsx (CORRIGIDO)
+
 import React, { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
@@ -12,7 +14,7 @@ export default function FinalizarPedido() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-
+  // AQUI ESTÁ A CORREÇÃO
   useEffect(() => {
     const temProduto = Object.values(carrinho).some((qtd) => qtd > 0);
     if (!temProduto) {
@@ -20,21 +22,25 @@ export default function FinalizarPedido() {
       return;
     }
 
-    setLoading(true); // inicia carregando
+    setLoading(true);
 
-    Promise.all([
-      fetch(`${import.meta.env.VITE_API_URL}/api/produtos`).then((res) => res.json()),
-      fetch(`${import.meta.env.VITE_API_URL}/api/acompanhamentos`).then((res) => res.json()),
-    ])
-      .then(([produtos, acompanhamentosGrupos]) => {
+    // 1. Fazemos UMA ÚNICA chamada para a nossa nova API do Google Script
+    fetch(import.meta.env.VITE_GOOGLE_SCRIPT_URL)
+      .then((res) => res.json())
+      .then((dados) => {
+        // 2. Extraímos os produtos e acompanhamentos da resposta única
+        const produtos = dados.produtos || [];
+        const acompanhamentosGrupos = dados.acompanhamentos || [];
+
+        // O resto da sua lógica para processar os dados continua o mesmo!
         const produtosComAcompanhamentos = produtos.map((produto) => {
           if (produto.acompanhamentos?.length > 0) {
             const gruposCompletos = produto.acompanhamentos
               .map((grupo) => {
-                const dados = acompanhamentosGrupos.find((g) => g.nome === grupo.nome);
-                if (!dados) return null;
+                const dadosGrupo = acompanhamentosGrupos.find((g) => g.nome === grupo.nome);
+                if (!dadosGrupo) return null;
                 return {
-                  ...dados,
+                  ...dadosGrupo,
                   min: grupo.min || 0,
                   max: grupo.max || 999,
                 };
@@ -50,7 +56,6 @@ export default function FinalizarPedido() {
           if (qtd === 0) return [];
 
           const acompanhamentos = [];
-
           produto.acompanhamentos?.forEach((grupo) => {
             grupo.itens.forEach((item) => {
               const itemId = `${produto.id}-${item.id}`;
@@ -64,7 +69,6 @@ export default function FinalizarPedido() {
               }
             });
           });
-
           return [{ ...produto, quantidade: qtd, acompanhamentos }];
         });
 
@@ -81,11 +85,16 @@ export default function FinalizarPedido() {
         setProdutosSelecionados(selecionados);
         setTotal(totalGeral);
       })
+      .catch(error => {
+        console.error("Falha ao buscar ou processar dados da API:", error);
+        // Opcional: mostrar uma mensagem de erro para o usuário
+      })
       .finally(() => setLoading(false));
   }, [carrinho, navigate]);
 
 
 
+  // O resto do seu componente (o return com o JSX) continua o mesmo
   return (
     <div className="min-h-screen bg-gray-50">
       <Card className="flex items-center justify-center shadow-sm overflow-hidden">
@@ -118,7 +127,7 @@ export default function FinalizarPedido() {
         </main>
       ) : (
         <>
-          <main className="p-2 space-y-2">
+          <main className="p-2 space-y-2 pb-24">
             {produtosSelecionados.map((produto) => (
               <Card key={produto.id} className="shadow-sm border rounded overflow-hidden">
                 <CardContent className="p-2 space-y-2">
@@ -207,5 +216,4 @@ export default function FinalizarPedido() {
 
     </div>
   );
-
 }
