@@ -1,6 +1,9 @@
 {
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/" }
-    ]
-  }
-  
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://na-tela-da-fome.vercel.app/summerice",
+      "permanent": true
+    }
+  ]
+}
